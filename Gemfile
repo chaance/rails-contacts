@@ -26,6 +26,8 @@ gem "bcrypt", "~> 3.1.7"
 
 gem "jwt", "~> 2.7.0"
 
+gem "addressable", "~> 2.8.1"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
