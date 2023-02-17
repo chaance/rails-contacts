@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  rails:
+    build: ./rails-contacts
+    ports:
+      - "5000:3000"
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"
+
+  remix:
+    build: ./remix-contacts
+    ports:
+      - "4000:3000"
+    depends_on:
+      - rails

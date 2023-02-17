@@ -1,0 +1,11 @@
+{
+  "name": "rails-contacts",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "rails server",
+    "db:migrate": "rails db:migrate"
+  },
+  "author": "",
+  "license": "MIT"
+}

@@ -1,21 +1,30 @@
 {
-  "name": "rails-contacts",
-  "version": "0.0.1",
-  "description": "This README would normally document whatever steps are necessary to get the application up and running.",
+  "name": "contacts",
+  "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "turbo run dev"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chaance/rails-contacts.git"
+  },
+  "author": "Chance Strickland <chance.strickland@shopify.com>",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chaance/rails-contacts/issues"
+  },
+  "homepage": "https://github.com/chaance/rails-contacts#readme",
+  "workspaces": [
+    "apps/rails-contacts",
+    "apps/remix-contacts"
+  ],
   "devDependencies": {
-    "eslint": "8",
-    "eslint-config-chance": "^2.0.2",
-    "eslint-import-resolver-node": "0.3.6",
-    "eslint-plugin-import": "2"
+    "concurrently": "^7.6.0",
+    "eslint": "^8.34.0",
+    "prettier": "^2.8.4",
+    "turbo": "^1.8.0"
   }
 }
