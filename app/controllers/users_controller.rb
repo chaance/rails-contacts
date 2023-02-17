@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  skip_before_action :authenticate_request, only: [:show, :index]
+  skip_before_action :authenticate_request, only: [:show, :index, :new, :create]
 
   def index
     @users = User.all
@@ -16,6 +16,12 @@ class UsersController < ApplicationController
   end
 
   def create
+    params = user_params
+    # since this is public we'll only allow our seed user to be created
+    if params["email"] != "chance.strickland@shopify.com" || params["password"] != "Test321!"
+      render json: { errors: ['Unauthorized'], params: params }, status: :unauthorized
+    end
+
     @user = User.new(user_params)
     if @user.save
       redirect_to contact_path(@user)
@@ -32,7 +38,7 @@ class UsersController < ApplicationController
   def update
     @user = User.find(params[:id])
     if @user.update(user_params)
-      redirect_to contact_path(@user)
+        redirect_to contact_path(@user)
     else
       render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
     end
