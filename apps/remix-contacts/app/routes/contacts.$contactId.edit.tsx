@@ -7,12 +7,11 @@ import {
   useNavigate,
   useNavigation,
 } from "@remix-run/react";
-
 import { getContact, updateContact } from "~/data";
 
 export async function loader({ params }: DataFunctionArgs) {
   invariant(params.contactId, "missing contactId param");
-  const contact = await getContact(params.contactId);
+  let contact = await getContact(params.contactId);
   if (!contact) {
     // Throwing a response will stop all code execution and send Remix down the
     // "catch boundary" path. The closes `CatchBoundary` will be rendered.
@@ -26,7 +25,7 @@ export async function action({ params, request }: DataFunctionArgs) {
   // TODO: Submit request to API /auth/login to get a token. See Rails "seed"
   // script for the auth values. Establish a session with the token on the Remix
   // side of things.
-  const formData = await request.formData();
+  let formData = await request.formData();
   await updateContact(
     params.contactId,
     {
@@ -42,10 +41,10 @@ export async function action({ params, request }: DataFunctionArgs) {
 }
 
 export default function EditContact() {
-  const contact = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
-  const navigation = useNavigation();
-  const isSaving = navigation.formData?.get("intent") === "edit";
+  let contact = useLoaderData<typeof loader>();
+  let navigate = useNavigate();
+  let navigation = useNavigation();
+  let isSaving = navigation.formData?.get("intent") === "edit";
 
   return (
     <Form method="post" id="contact-form">
@@ -92,7 +91,7 @@ export default function EditContact() {
       </label>
       <p>
         <button type="submit" name="intent" value="edit">
-          {isSaving ? "Saving..." : "Save"}
+          {isSaving ? "Saving…" : "Save"}
         </button>
         <button
           type="button"

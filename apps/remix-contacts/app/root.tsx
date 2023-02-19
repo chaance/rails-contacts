@@ -1,7 +1,8 @@
 import * as React from "react";
-import { redirect } from "@remix-run/node";
 import {
   Form,
+  isRouteErrorResponse,
+  Link,
   Links,
   LiveReload,
   Meta,
@@ -10,37 +11,36 @@ import {
   Scripts,
   ScrollRestoration,
   useCatch,
-  useLoaderData,
-  useSubmit,
-  useNavigation,
   useFetchers,
+  useLoaderData,
+  useNavigation,
+  useSubmit,
 } from "@remix-run/react";
 import type { LoaderArgs } from "@remix-run/node";
+import { getContacts, type ContactRecord } from "~/data";
+import resetsStylesHref from "~/resets.css";
+import appStylesHref from "~/app.css";
 
-import { getContacts, type ContactRecord } from "./data";
-import ErrorPage from "./error-page";
-import appStylesHref from "./app.css";
+export function links() {
+  return [
+    { rel: "stylesheet", href: resetsStylesHref },
+    { rel: "stylesheet", href: appStylesHref },
+  ];
+}
 
 export async function loader({ request }: LoaderArgs) {
-  const url = new URL(request.url);
-  const q = url.searchParams.get("q") || undefined;
-  const contacts = await getContacts(q);
+  let url = new URL(request.url);
+  let q = url.searchParams.get("q") || undefined;
+  let contacts = await getContacts(q);
   return { contacts, q };
 }
 
-export async function action() {
-  return redirect(`/contacts}/new`);
-}
-
 export default function Root() {
-  // type inference over the network from `typeof loader`
-  const { contacts, q } = useLoaderData<typeof loader>();
+  let { contacts, q } = useLoaderData<typeof loader>();
+  let navigation = useNavigation();
+  let submit = useSubmit();
 
-  const navigation = useNavigation();
-  const submit = useSubmit();
-
-  // Figure out if the user is searching
-  const searching =
+  let userIsSearching =
     // if navigation.location exists, then we're in the middle of a navigation
     // and data is being fetched for the next page
     navigation.location &&
@@ -49,15 +49,15 @@ export default function Root() {
 
   // The rules around React "controlled inputs" don't really make sense when the
   // URL and the user are driving the UI and not React state. We could wire up
-  // some react state to the the input, but we'd still need this useEffect to
+  // some React state to the the input, but we'd still need this useEffect to
   // synchronize the URL to the state. If we have to do manual synchronization
   // anyway, it's more straightforward and less code to just synchronize the URL
   // to the input manually. It's okay, Andrew won't arrest you. He's not even a
   // cop.
   React.useEffect(() => {
-    const input = document.getElementById("q");
-    if (input && input instanceof HTMLInputElement && q) {
-      input.value = q;
+    let input = document.getElementById("q");
+    if (input && input instanceof HTMLInputElement) {
+      input.value = q || "";
     }
   }, [q]);
 
@@ -66,14 +66,13 @@ export default function Root() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <link rel="stylesheet" href={appStylesHref} />
         <Meta />
         <Links />
       </head>
       <body>
         <div id="root">
-          <div id="sidebar">
-            <h1>Remix Contacts</h1>
+          <header id="masthead">
+            <Link to="/">Remix Contacts</Link>
             <div>
               <Form
                 method="get"
@@ -89,7 +88,7 @@ export default function Root() {
               >
                 <input
                   id="q"
-                  className={searching ? "loading" : ""}
+                  className={userIsSearching ? "loading" : undefined}
                   aria-label="Search contacts"
                   placeholder="Search"
                   type="search"
@@ -107,13 +106,15 @@ export default function Root() {
                     });
                   }}
                 />
-                <div id="search-spinner" aria-hidden hidden={!searching} />
-              </Form>
-              <Form method="post">
-                <button type="submit">New</button>
+                <div
+                  id="search-spinner"
+                  aria-hidden
+                  hidden={!userIsSearching}
+                />
+                <button type="submit">Go</button>
               </Form>
             </div>
-            <nav>
+            <nav aria-label="Contacts">
               {contacts.length ? (
                 <ul>
                   {contacts.map((contact) => (
@@ -122,17 +123,17 @@ export default function Root() {
                         prefetch="intent"
                         to={`contacts/${contact.id}`}
                         className={({ isActive, isPending }) =>
-                          isActive ? "active" : isPending ? "pending" : ""
+                          isActive
+                            ? "active"
+                            : isPending
+                            ? "pending"
+                            : undefined
                         }
                       >
-                        {contact.firstName || contact.lastName ? (
-                          <>
-                            {contact.firstName} {contact.lastName}
-                          </>
-                        ) : (
-                          <i>No Name</i>
-                        )}{" "}
-                        <OptimisticFavorite contact={contact} />
+                        {[contact.firstName, contact.lastName]
+                          .filter(Boolean)
+                          .join(" ")}
+                        <FavoriteIndicator contact={contact} />
                       </NavLink>
                     </li>
                   ))}
@@ -143,15 +144,39 @@ export default function Root() {
                 </p>
               )}
             </nav>
-          </div>
-          <div id="detail">
+          </header>
+          <main>
             <Outlet />
-          </div>
+          </main>
         </div>
-
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+      </body>
+    </html>
+  );
+}
+
+function ErrorPage({ error }: { error: Error }) {
+  return (
+    <html lang="en">
+      <head>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <div id="root">
+          <div id="error-page">
+            <h1>Oops!</h1>
+            <p>Sorry, an unexpected error has occurred.</p>
+            <p>
+              <i>
+                {isRouteErrorResponse(error) ? error.statusText : error.message}
+              </i>
+            </p>
+            <Link to="/">Go Home</Link>
+          </div>
+        </div>
       </body>
     </html>
   );
@@ -162,19 +187,19 @@ export function ErrorBoundary({ error }: { error: Error }) {
 }
 
 export function CatchBoundary() {
-  const caught = useCatch();
-  const error = new Error(caught.statusText);
+  let caught = useCatch();
+  let error = new Error(caught.statusText);
   return <ErrorPage error={error} />;
 }
 
-function OptimisticFavorite({ contact }: { contact: ContactRecord }) {
-  const fetchers = useFetchers();
+function FavoriteIndicator({ contact }: { contact: ContactRecord }) {
+  let fetchers = useFetchers();
 
   // start with the default case, read the actual data.
   let isFavorite = contact.favorite;
 
   // Now check if there are any pending fetchers that are changing this contact
-  for (const fetcher of fetchers) {
+  for (let fetcher of fetchers) {
     // @ts-expect-error https://github.com/remix-run/remix/pull/5476
     if (fetcher.formAction === `/contacts/${contact.id}`) {
       // Ask for the optimistic version of the data
@@ -185,5 +210,10 @@ function OptimisticFavorite({ contact }: { contact: ContactRecord }) {
 
   // Now the star in the sidebar will immediately update as the user clicks
   // instead of waiting for the network to respond
-  return isFavorite ? <span>★</span> : null;
+  return isFavorite ? (
+    <span className="favorite-indicator">
+      <span aria-hidden>★</span>
+      <span className="sr-only">(favorite)</span>
+    </span>
+  ) : null;
 }

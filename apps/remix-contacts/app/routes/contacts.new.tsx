@@ -1,10 +1,9 @@
 import type { DataFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useNavigate, useNavigation } from "@remix-run/react";
-
 import { createContact } from "~/data";
 
-export async function action({ params, request }: DataFunctionArgs) {
+export async function action({ request }: DataFunctionArgs) {
   // TODO: Submit request to API /auth/login to get a token. See Rails "seed"
   // script for the auth values. Establish a session with the token on the Remix
   // side of things.
@@ -23,9 +22,9 @@ export async function action({ params, request }: DataFunctionArgs) {
 }
 
 export default function EditContact() {
-  const navigate = useNavigate();
-  const navigation = useNavigation();
-  const isSaving = navigation.formData?.get("intent") === "edit";
+  let navigate = useNavigate();
+  let navigation = useNavigation();
+  let isSaving = navigation.formData?.get("intent") === "create";
 
   return (
     <Form method="post" id="contact-form">
@@ -63,8 +62,8 @@ export default function EditContact() {
         <textarea name="notes" rows={6} />
       </label>
       <p>
-        <button type="submit" name="intent" value="edit">
-          {isSaving ? "Saving..." : "Save"}
+        <button type="submit" name="intent" value="create">
+          {isSaving ? "Saving…" : "Save"}
         </button>
         <button
           type="button"

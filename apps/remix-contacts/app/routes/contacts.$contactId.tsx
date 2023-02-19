@@ -1,7 +1,6 @@
 import type { DataFunctionArgs } from "@remix-run/node";
 import { Form, useFetcher, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
-
 import { updateContact, getContact, type ContactRecord } from "~/data";
 
 export async function loader({ params }: DataFunctionArgs) {
@@ -43,22 +42,21 @@ export default function Contact() {
 
   return (
     <div id="contact">
-      <div>
+      {contact.avatar ? (
         <img
-          key={contact.avatar}
+          className="avatar"
           src={contact.avatar}
           alt={`${friendlyName} avatar`.trim()}
         />
-      </div>
-
+      ) : null}
       <div>
-        <h1>
-          {friendlyName ? <>{friendlyName}</> : <i>No Name</i>}{" "}
+        <header>
+          <h1>{friendlyName}</h1>
           <Favorite contact={contact} />
-        </h1>
+        </header>
 
         {contact.twitterHandle ? (
-          <p>
+          <p className="twitter">
             <a
               target="_blank"
               href={`https://twitter.com/${contact.twitterHandle}`}
@@ -69,9 +67,9 @@ export default function Contact() {
           </p>
         ) : null}
 
-        {contact.notes ? <p>{contact.notes}</p> : null}
+        {contact.notes ? <p className="notes">{contact.notes}</p> : null}
 
-        <div>
+        <div className="actions">
           <Form action="edit">
             <button type="submit">Edit</button>
           </Form>
@@ -79,7 +77,9 @@ export default function Contact() {
             method="post"
             action="destroy"
             onSubmit={(event) => {
-              if (!confirm("Please confirm you want to delete this record.")) {
+              if (
+                !window.confirm("Are you sure you want to delete this record?")
+              ) {
                 event.preventDefault();
               }
             }}
@@ -93,15 +93,13 @@ export default function Contact() {
 }
 
 function Favorite({ contact }: { contact: ContactRecord }) {
-  const fetcher = useFetcher<typeof action>();
+  let fetcher = useFetcher<typeof action>();
   let favorite = contact.favorite;
-  // @ts-expect-error
-  if (fetcher.formData) {
-    // @ts-expect-error
+  if ("formData" in fetcher && fetcher.formData) {
     favorite = fetcher.formData.get("favorite") === "true";
   }
   return (
-    <fetcher.Form method="post">
+    <fetcher.Form method="post" id="favorite-form">
       <button
         type="submit"
         name="favorite"
